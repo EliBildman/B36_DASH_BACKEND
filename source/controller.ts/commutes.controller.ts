@@ -2,15 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import fs from 'fs';
 import { Client, LatLng, LatLngArray, UnitSystem } from "@googlemaps/google-maps-services-js";
 
-export const foo = async (req: Request, res: Response, next: NextFunction) => {
-  const data = {a: 1, b: 2};
-  return res.send(data);
-}
+const CACHE_TIME_MINS = 10; // TODO: make a real cache lmfao
+let lastRequestTime = 0;
+let cachedCommuteTimes = {}
 
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
   type Location = {
     name: string,
     loc: LatLngArray
+  }
+
+  const now = Date.now();
+  console.log(`${now}: Get all commute times`);
+
+  if (now - lastRequestTime < CACHE_TIME_MINS * 60 * 1000) {
+    console.log(`${now}: Used cached commute time`);
+    return res.send(cachedCommuteTimes);
   }
 
   const rawData = fs.readFileSync("./data/locations.json", 'utf-8');
@@ -35,5 +42,8 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
     }
   })
 
+  lastRequestTime = now;
+  cachedCommuteTimes = commutes;
+  
   return res.send(commutes);
 }
