@@ -1,17 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import fs from 'fs';
 import { Client, LatLng, LatLngArray, UnitSystem } from "@googlemaps/google-maps-services-js";
+import { Location } from "../../types";
 
 const CACHE_TIME_MINS = 10; // TODO: make a real cache lmfao
 let lastRequestTime = 0;
 let cachedCommuteTimes = {}
 
 export const getAll = async (req: Request, res: Response, next: NextFunction) => {
-  type Location = {
-    name: string,
-    loc: LatLngArray
-  }
-
   const now = Date.now();
   console.log(`${now}: Get all commute times`);
 

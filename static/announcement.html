@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        #uploadForm {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+        }
+
+        #uploadForm h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #uploadForm label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #uploadForm input[type="text"],
+        #uploadForm input[type="datetime-local"],
+        #uploadForm input[type="file"],
+        #uploadForm textarea {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        #uploadForm textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        #uploadForm input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            color: #fff;
+            background-color: #007BFF;
+            cursor: pointer;
+        }
+
+        #uploadForm input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form id="uploadForm">
+        <h1>Create a new announcement!!</h1>
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" id="start_time" name="start_time" required>
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" name="end_time" required>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="text">Text:</label>
+        <textarea id="text" name="text"></textarea>
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image">
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('start_time', document.getElementById('start_time').value);
+            formData.append('end_time', document.getElementById('end_time').value);
+            formData.append('title', document.getElementById('title').value);
+            formData.append('text', document.getElementById('text').value);
+            formData.append('image', document.getElementById('image').files[0]);
+
+            fetch('http://localhost:4000/announcements/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error));
+        });
+    </script>
+</body>
+</html>
