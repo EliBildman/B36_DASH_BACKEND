@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const livestreams_controller_1 = require("../controller.ts/livestreams.controller");
+const router = (0, express_1.Router)();
+router.get("/", livestreams_controller_1.getAll);
+router.put("/", livestreams_controller_1.add);
+router.delete("/", livestreams_controller_1.deleteStream);
+router.post("/", livestreams_controller_1.setActive);
+router.get("/active", livestreams_controller_1.getActive);
+router.get("/cycle", livestreams_controller_1.getCycleLivestreams);
+router.post("/cycle", livestreams_controller_1.setCycleLivestreams);
+exports.default = router;

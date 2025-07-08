@@ -1,6 +1,7 @@
 import { NextFunction, Response, Request } from "express";
 import { Announcement } from "../../types";
 import fs, { read } from "fs";
+import { sendEvent } from "../routes/socket";
 
 const readAnnouncements = () => {
   const rawData = fs.readFileSync("./data/announcements.json", "utf-8");
@@ -40,18 +41,21 @@ export const add = async (req: Request, res: Response, next: NextFunction) => {
       image: req.file?.path ?? "static/images/default.png", // this will contain the path of the uploaded image
     };
 
-    console.log(data); // Do something with the data
+    // console.log(new Date(data.start_time), new Date())
+    if (new Date(data.start_time) < new Date()) { // send an event if active
+      sendEvent("new-announcement")
+    }
 
     const announcements = readAnnouncements();
     announcements.push(data);
-    console.log(data);
+
     fs.writeFileSync(
       "./data/announcements.json",
       JSON.stringify(announcements),
       "utf-8"
     );
 
-    res.send(data);
+    res.send({ success: true });
   } catch (err) {
     res.status(400).send(err);
   }

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom HTML Uploader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+        .instructions {
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #333;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: auto;
+        }        .slide-selector {
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            min-height: 190px;
+        }
+        .slide-thumbnails {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }        .slide-thumbnail {
+            width: 240px;
+            height: 160px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .new-slide-btn {
+            width: 240px;
+            height: 160px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #666;
+            border-style: dashed;
+        }
+        .new-slide-btn:hover {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+        .new-slide-btn.active {
+            border-color: #4CAF50;
+            border-width: 3px;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+        .slide-thumbnail:hover {
+            border-color: #4CAF50;
+        }        .slide-thumbnail.active {
+            border-color: #4CAF50;
+            border-width: 3px;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+        .slide-thumbnail.editing {
+            border-color: #4CAF50;
+            border-width: 3px;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+        .slide-thumbnail .star-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #FFD700;
+            color: #333;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }.slide-thumbnail iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            transform: scale(0.4);
+            transform-origin: 0 0;
+            width: 250%;
+            height: 250%;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        form textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            height: 180px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 16px;
+        }
+        .form-buttons {
+            display: flex; 
+            gap: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        .btn-secondary:hover {
+            background-color: #1976D2;
+        }
+        .btn-danger {
+            background-color: #c0392b;
+        }
+        .btn-danger:hover {
+            background-color: #a93226;
+        }
+        #feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        #feedback.success {
+            color: green;
+        }
+        #feedback.error {
+            color: red;
+        }
+        .preview-section {
+            margin-top: 35px;
+        }
+        .preview-section h2 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            color: #333;
+        }
+        #htmlPreview {
+            width: 100%;
+            min-height: 160px;
+            height: 800px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fafaff;
+            margin-bottom: 8px;
+        }
+        /* Responsive design */
+        @media screen and (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-around;
+                padding-top: 0;
+                padding-bottom: 10px;
+            }
+            .sidebar a {
+                border-bottom: none;
+                border-right: 1px solid #444;
+                padding: 10px 5px;
+            }            .sidebar a:last-child {
+                border-right: none;
+            }
+            .instructions {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+            .new-slide-btn {
+                width: 200px;
+                height: 120px;
+                font-size: 36px;
+            }
+            .slide-thumbnail {
+                width: 200px;
+                height: 120px;
+            }
+        }
+        @media screen and (max-width: 576px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            form textarea,
+            .btn,
+            #htmlPreview {
+                width: 100%;
+                height: fit-content;
+            }
+            .form-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/static/livestreams.html">Livestreams</a>
+        <a href="/static/announcement.html">Announcements</a>
+        <a href="/static/tt.html">Table Tennis</a>
+        <a href="/static/html.html">Custom HTML</a>
+    </div>
+    <div class="main-content">        <header>
+            <h1>Upload Custom HTML Content</h1>
+        </header>
+        
+        <div class="instructions">
+            Click '+' to create new slides • Single click to edit slides • Double click to set active (★) • Green outline shows what you're editing
+        </div>
+          <div class="slide-selector">
+            <div class="slide-thumbnails" id="slideThumbnails">
+                <!-- Thumbnails will be loaded here -->
+            </div>
+        </div>
+        
+        <div class="container">
+            <form id="htmlUploadForm" autocomplete="off">
+                <label for="htmlContent">*Enter your HTML:</label>
+                <textarea id="htmlContent" name="html" required placeholder="&lt;h1&gt;Your HTML here...&lt;/h1&gt;"></textarea>                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">Upload New HTML</button>
+                    <button type="button" id="deleteHtmlBtn" class="btn btn-danger">Delete HTML</button>
+                </div>
+            </form>
+            <div class="preview-section">
+                <h2>Live Preview:</h2>
+                <iframe id="htmlPreview" sandbox="allow-scripts allow-forms"></iframe>
+            </div>
+            <div id="feedback"></div>
+        </div>
+    </div>    <script>
+        let currentSlides = [];
+        let selectedSlideId = null; // ID of slide being edited
+        let activeSlideId = null;   // ID of slide that's active on server
+        let isNewSlideMode = true;  // Start in new slide mode
+        
+        const htmlTextarea = document.getElementById('htmlContent');
+        const previewFrame = document.getElementById('htmlPreview');
+        const uploadBtn = document.getElementById('uploadBtn');
+        
+        function updatePreview() {
+            const html = htmlTextarea.value;
+            previewFrame.srcdoc = html;
+        }
+        
+        function showFeedback(message, isError = false) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = isError ? 'error' : 'success';
+        }
+        
+        function clearFeedback() {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = '';
+            feedback.className = '';
+        }
+        
+        function loadSlides() {
+            fetch('/html/')
+                .then(response => response.json())
+                .then(slides => {
+                    currentSlides = slides;
+                    // Find the active slide
+                    const activeSlide = slides.find(slide => slide.active);
+                    activeSlideId = activeSlide ? activeSlide.id : null;
+                    renderThumbnails();
+                })
+                .catch(error => {
+                    console.error('Error loading slides:', error);
+                    showFeedback('Failed to load slides', true);
+                });
+        }
+        
+        function renderThumbnails() {
+            const container = document.getElementById('slideThumbnails');
+            container.innerHTML = '';
+            
+            // Add the '+' button for new slides
+            const newSlideBtn = document.createElement('div');
+            newSlideBtn.className = 'new-slide-btn';
+            if (isNewSlideMode) {
+                newSlideBtn.classList.add('active');
+            }
+            newSlideBtn.textContent = '+';
+            newSlideBtn.addEventListener('click', () => selectNewSlideMode());
+            container.appendChild(newSlideBtn);
+            
+            // Add existing slides
+            currentSlides.forEach(slide => {
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'slide-thumbnail';
+                thumbnail.dataset.slideId = slide.id;
+                
+                // Add editing highlight
+                if (!isNewSlideMode && selectedSlideId === slide.id) {
+                    thumbnail.classList.add('editing');
+                }
+                
+                const iframe = document.createElement('iframe');
+                iframe.srcdoc = slide.html;
+                iframe.sandbox = 'allow-scripts allow-forms';
+                thumbnail.appendChild(iframe);
+                  // Add star indicator for active slide
+                if (activeSlideId === slide.id) {
+                    const star = document.createElement('div');
+                    star.className = 'star-indicator';
+                    star.textContent = '★';
+                    star.title = 'Active slide';
+                    thumbnail.appendChild(star);
+                }
+                
+                // Single click - load for editing
+                thumbnail.addEventListener('click', () => selectSlideForEditing(slide.id));
+                
+                // Double click - set as active
+                thumbnail.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    setSlideAsActive(slide.id);
+                });
+                
+                container.appendChild(thumbnail);
+            });
+        }
+        
+        function selectNewSlideMode() {
+            isNewSlideMode = true;
+            selectedSlideId = null;
+            
+            // Clear the textarea
+            htmlTextarea.value = '';
+            updatePreview();
+            
+            // Update button text
+            uploadBtn.textContent = 'Upload New HTML';
+            
+            // Update thumbnails
+            renderThumbnails();
+            
+            clearFeedback();
+        }
+        
+        function selectSlideForEditing(slideId) {
+            isNewSlideMode = false;
+            selectedSlideId = slideId;
+            const slide = currentSlides.find(s => s.id === slideId);
+            
+            if (!slide) return;
+            
+            // Fill the textarea
+            htmlTextarea.value = slide.html;
+            updatePreview();
+            
+            // Update button text
+            uploadBtn.textContent = 'Update HTML';
+            
+            // Update thumbnails to show editing state
+            renderThumbnails();
+            
+            clearFeedback();
+        }
+        
+        function setSlideAsActive(slideId) {
+            fetch(`/html/set-active/${slideId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    activeSlideId = slideId;
+                    showFeedback('Slide set as active!');
+                    renderThumbnails(); // Update to show new active state
+                } else {
+                    showFeedback('Failed to set active slide', true);
+                }
+            })
+            .catch(error => {
+                console.error('Error setting active slide:', error);
+                showFeedback('Error setting active slide', true);
+            });
+        }
+        
+        htmlTextarea.addEventListener('input', updatePreview);
+        
+        // Initialize
+        updatePreview();
+        loadSlides();
+        
+        // Form submission
+        document.getElementById('htmlUploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const htmlContent = htmlTextarea.value.trim();
+            
+            clearFeedback();
+            
+            if (htmlContent === "") {
+                showFeedback("HTML field cannot be empty!", true);
+                return;
+            }
+            
+            if (isNewSlideMode) {
+                // Upload new slide
+                fetch('/html/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ html: htmlContent })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showFeedback('HTML uploaded successfully!');
+                        loadSlides();
+                        // Stay in new slide mode, but clear the form
+                        htmlTextarea.value = '';
+                        updatePreview();
+                    } else {
+                        showFeedback(data.error || 'Failed to upload HTML.', true);
+                    }
+                })
+                .catch(error => {
+                    showFeedback('An error occurred: ' + error.message, true);
+                });
+            } else {
+                // Edit existing slide
+                fetch(`/html/edit/${selectedSlideId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ html: htmlContent })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showFeedback('HTML updated successfully!');
+                        loadSlides();
+                        // Re-select the slide for continued editing
+                        setTimeout(() => selectSlideForEditing(selectedSlideId), 100);
+                    } else {
+                        showFeedback(data.error || 'Failed to update HTML.', true);
+                    }
+                })
+                .catch(error => {
+                    showFeedback('An error occurred: ' + error.message, true);
+                });
+            }
+        });
+        
+        // Delete button functionality
+        document.getElementById('deleteHtmlBtn').addEventListener('click', function() {
+            clearFeedback();
+            
+            if (isNewSlideMode) {
+                showFeedback('Please select a slide to delete.', true);
+                return;
+            }
+            
+            if (!selectedSlideId) {
+                showFeedback('No slide selected to delete.', true);
+                return;
+            }
+            
+            if (!confirm("Are you sure you want to delete the selected slide? This cannot be undone.")) {
+                return;
+            }
+            
+            fetch(`/html/delete/${selectedSlideId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showFeedback('HTML slide deleted successfully!');
+                    loadSlides();
+                    // Switch back to new slide mode
+                    selectNewSlideMode();
+                } else {
+                    showFeedback(data.error || 'Failed to delete HTML slide.', true);
+                }
+            })
+            .catch(error => {
+                showFeedback('An error occurred: ' + error.message, true);
+            });
+        });
+    </script>
+</body>
+</html>

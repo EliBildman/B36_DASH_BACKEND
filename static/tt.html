@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Table Tennis ELO Admin</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+      }
+      header {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 0;
+        text-align: center;
+        width: 100%;
+      }
+      .sidebar {
+        width: 200px;
+        background-color: #333;
+        color: white;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+        box-sizing: border-box;
+      }
+      .sidebar a {
+        color: white;
+        text-decoration: none;
+        padding: 10px 0;
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #444;
+        box-sizing: border-box;
+      }
+      .sidebar a:hover {
+        background-color: #575757;
+      }
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: auto;
+      }
+      .container {
+        padding: 20px;
+        margin: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        margin-top: 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+      th,
+      td {
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f4f4f4;
+      }
+      .form-container {
+        margin-bottom: 40px;
+      }
+      .form-container form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label {
+        font-weight: bold;
+      }
+      input[type="text"],
+      input[type="number"],
+      input[type="range"] {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        padding: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .delete-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      .delete-button:hover {
+        background-color: #e53935;
+      }
+      .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+      }
+      .slider-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+      .slider {
+        flex-grow: 1;
+        margin: 0 10px;
+      }
+      .handicap-label {
+        font-weight: bold;
+        width: 50px;
+        text-align: center;
+      }
+      .sidebar .cycle-button {
+        margin-top: auto;
+        width: 90%;
+        margin-bottom: 20px;
+        background-color: #007bff;
+      }
+      .sidebar .cycle-button:hover {
+        background-color: #0056b3;
+      }
+      @media screen and (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          height: auto;
+          flex-direction: row;
+          justify-content: space-around;
+          padding-top: 0;
+          padding-bottom: 10px;
+        }
+        .sidebar a {
+          border-bottom: none;
+          border-right: 1px solid #444;
+          padding: 10px 5px;
+        }
+        .sidebar a:last-child {
+          border-right: none;
+        }
+        .sidebar .cycle-button {
+          width: auto;
+        }
+        .main-content {
+          height: auto;
+        }
+        table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+        th,
+        td {
+          padding: 12px;
+        }
+      }
+      @media screen and (max-width: 576px) {
+        .form-container form {
+          gap: 5px;
+        }
+        .container {
+          margin: 10px;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a href="/static/livestreams.html">Livestreams</a>
+      <a href="/static/announcement.html">Announcements</a>
+      <a href="/static/tt.html">Table Tennis</a>
+      <a href="/static/html.html">Custom HTML</a>
+      <!-- Cycle Button -->
+      <button class="cycle-button" onclick="cycleDash()">Cycle Dash</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <header>
+        <h1>Table Tennis ELO Admin</h1>
+      </header>
+      <div class="container">
+        <!-- Add New Game Form -->
+        <h2>Add New Game</h2>
+        <div class="form-container">
+          <form id="new-game-form">
+            <label for="inputPlayerA">Player A</label>
+            <input id="inputPlayerA" type="text" list="playerA" required />
+            <datalist id="playerA"></datalist>
+
+            <label for="inputPlayerB">Player B</label>
+            <input id="inputPlayerB" type="text" list="playerB" required />
+            <datalist id="playerB"></datalist>
+
+            <label for="inputPlayerAScore">Player A's Score</label>
+            <input id="inputPlayerAScore" type="number" min="0" required />
+
+            <label for="inputPlayerBScore">Player B's Score</label>
+            <input id="inputPlayerBScore" type="number" min="0" required />
+
+            <label>Handicap (A left, B right):</label>
+            <div class="slider-container">
+              <span class="handicap-label" id="handicapAValue">0</span>
+              <input type="range" id="handicapSlider" class="slider" min="-10" max="10" value="0" />
+              <span class="handicap-label" id="handicapBValue">0</span>
+            </div>
+
+            <div class="error-message" id="error-message"></div>
+
+            <button type="submit">Add Game</button>
+          </form>
+        </div>
+      </div>
+      <div class="container">
+        <!-- Player Ratings -->
+        <h2>Current Ratings</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Player Name</th>
+              <th>ELO Rating</th>
+            </tr>
+          </thead>
+          <tbody id="player-ratings"></tbody>
+        </table>
+      </div>
+      <div class="container">
+        <h2>Match History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Player A</th>
+              <th>Player B</th>
+              <th>Score</th>
+              <th>Winner</th>
+              <th>ELO Change</th>
+              <th>Handicap</th> <!-- New column -->
+              <th>Timestamp</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="match-history"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "/tt";
+
+      const handicapSlider = document.getElementById("handicapSlider");
+      const handicapAValue = document.getElementById("handicapAValue");
+      const handicapBValue = document.getElementById("handicapBValue");
+
+      handicapSlider.addEventListener("input", () => {
+        const currentValue = parseInt(handicapSlider.value, 10);
+        handicapAValue.textContent = currentValue < 0 ? Math.abs(currentValue) : "0";
+        handicapBValue.textContent = currentValue > 0 ? currentValue : "0";
+      });
+
+      async function fetchPlayers() {
+        try {
+          const response = await fetch(`${API_URL}/players`);
+          const players = await response.json();
+          populateDropdown(document.getElementById("playerA"), players.map((player) => player.name));
+          populateDropdown(document.getElementById("playerB"), players.map((player) => player.name));
+          populatePlayerRatingsTable(players);
+        } catch (error) {
+          console.error("Error fetching players:", error);
+        }
+      }
+
+      async function fetchMatchHistory() {
+        try {
+          const response = await fetch(`${API_URL}/gameHistory`);
+          const matchHistory = await response.json();
+          populateMatchHistoryTable(matchHistory);
+        } catch (error) {
+          console.error("Error fetching match history:", error);
+        }
+      }
+
+      function populateDropdown(dropdown, players) {
+        dropdown.innerHTML = "";
+        players.forEach((player) => {
+          const option = document.createElement("option");
+          option.value = player;
+          dropdown.appendChild(option);
+        });
+      }
+
+      function populatePlayerRatingsTable(players) {
+        const playerRatingsTable = document.getElementById("player-ratings");
+        playerRatingsTable.innerHTML = "";
+        players.forEach((player) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${player.name}</td>
+            <td>${player.elo}</td>
+          `;
+          playerRatingsTable.appendChild(row);
+        });
+      }
+
+      function populateMatchHistoryTable(matches) {
+        const matchHistoryTable = document.getElementById("match-history");
+        matchHistoryTable.innerHTML = "";
+        matches.forEach((match, index) => {
+          const handicapValue = match.handicapA > 0
+            ? match.handicapA
+            : match.handicapB > 0
+            ? -match.handicapB
+            : 0;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${match.playerA}</td>
+            <td>${match.playerB}</td>
+            <td>${match.playerAScore} - ${match.playerBScore}</td>
+            <td>${match.winner}</td>
+            <td>${match.eloChange}</td>
+            <td>${handicapValue}</td> <!-- Displays handicap -->
+            <td>${new Date(match.timestamp).toLocaleString()}</td>
+            <td><button class="delete-button" onclick="confirmDelete(${index})">Delete</button></td>
+          `;
+          matchHistoryTable.appendChild(row);
+        });
+      }
+
+      async function confirmDelete(gameId) {
+        if (confirm("Are you sure you want to delete this match?")) {
+          try {
+            const response = await fetch(`${API_URL}/game/${gameId}`, { method: "DELETE" });
+            if (!response.ok) throw new Error("Failed to delete match");
+            fetchMatchHistory();
+            fetchPlayers();
+          } catch (error) {
+            console.error("Error deleting match:", error);
+          }
+        }
+      }
+
+      async function submitNewGame(event) {
+        event.preventDefault();
+        const playerA = document.getElementById("inputPlayerA").value;
+        const playerB = document.getElementById("inputPlayerB").value;
+        const playerAScore = parseInt(document.getElementById("inputPlayerAScore").value, 10);
+        const playerBScore = parseInt(document.getElementById("inputPlayerBScore").value, 10);
+        const handicapA = handicapSlider.value < 0 ? Math.abs(parseInt(handicapSlider.value, 10)) : 0;
+        const handicapB = handicapSlider.value > 0 ? parseInt(handicapSlider.value, 10) : 0;
+
+        const errorMessage = document.getElementById("error-message");
+
+        if (playerA.toLowerCase() === playerB.toLowerCase()) {
+          errorMessage.textContent = "Player A and Player B cannot be the same!";
+          return;
+        }
+
+        const isValid =
+          (playerAScore === 2 && playerBScore <= 1) ||
+          (playerBScore === 2 && playerAScore <= 1);
+        if (!isValid) {
+          errorMessage.textContent = "Invalid scores for a best-of-three game!";
+          return;
+        }
+
+        errorMessage.textContent = "";
+
+        try {
+          const response = await fetch(`${API_URL}/game`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              playerA,
+              playerB,
+              result: { playerAScore, playerBScore },
+              handicapA,
+              handicapB,
+            }),
+          });
+          if (!response.ok) throw new Error("Failed to submit game");
+          fetchMatchHistory();
+          fetchPlayers();
+          document.getElementById("new-game-form").reset();
+          handicapSlider.value = 0;
+          handicapAValue.textContent = "0";
+          handicapBValue.textContent = "0";
+        } catch (error) {
+          console.error("Error submitting new game:", error);
+        }
+      }
+
+      document.getElementById("new-game-form").addEventListener("submit", submitNewGame);
+
+      fetchPlayers();
+      fetchMatchHistory();
+
+      async function cycleDash() {
+        try {
+          const response = await fetch("/message", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: "cycle" }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to send cycle dash request");
+          }
+          console.log("Cycle Dash triggered successfully");
+        } catch (error) {
+          console.error("Error triggering Cycle Dash:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -14,16 +14,29 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.1.0",
+    "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "uuid": "^11.0.3"
   },
   "main": "source/server.ts",
   "scripts": {
     "dev": "nodemon source/server.ts",
-    "build": "rm -rf build/ && prettier --write source/ && tsc"
+    "build": "rm -rf build/ && tsc",
+    "start": "node build/source/server.js",
+    "docker-build": "docker build -t b36-dash-backend .",
+    "docker-run": "docker run -d -v /c/dev/b36-dash-backend/data:/usr/src/app/data -p 4000:4000 --name B36_DASH_BACKEND b36-dash-backend",
+    "docker-kill": "docker stop B36_DASH_BACKEND && docker rm B36_DASH_BACKEND",
+    "docker-replace": "npm run docker-kill && npm run docker-run",
+    "docker-inspect": "docker run -v /c/dev/b36-dash-backend/data:/usr/src/app/data -it --entrypoint sh b36-dash-backend",
+    "docker-redeploy": "npm run docker-build && npm run docker-replace",
+    "docker-save": "docker save -o \"C:/Users/ebildman/OneDrive - Alarm.com/docker_images/b36-dash-backend.tar\" b36-dash-backend",
+    "ship": "npm run docker-build && npm run docker-save"
   },
   "nodemonConfig": {
-    "ignore": ["**.json"]
+    "ignore": [
+      "**.json"
+    ]
   },
   "devDependencies": {
     "@types/multer": "^1.4.11"

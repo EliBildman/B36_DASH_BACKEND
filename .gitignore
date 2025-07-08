@@ -1,6 +1,10 @@
 .env
 node_modules/**
 data/**
+data_backups/**
+ssl/**
 **foo.**
 static/images/**
 !**.placeholder**
+openssl.cnf
+**.ipynb

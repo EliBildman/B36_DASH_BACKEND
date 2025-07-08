@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livestream Admin Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #333;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            box-sizing: border-box;
+        }
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: auto;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .input-group button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .input-group button:hover {
+            background-color: #45a049;
+        }
+        .instruction {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .stream-list {
+            margin-top: 20px;
+        }
+        .stream-item {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .stream-item.active {
+            border: 2px solid #4CAF50;
+            background-color: #e8f5e9;
+        }
+        .iframe-container {
+            position: relative;
+            width: 200px; /* Fixed width */
+            height: 150px; /* Fixed height */
+            overflow: hidden;
+        }
+        .iframe-container iframe {
+            pointer-events: none; /* Prevent iframe from being clickable */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%; /* Ensure iframe fully fills the container */
+            border: none;
+        }
+        .button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #e53935;
+        }
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 5px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10; /* Ensure it's above iframe */
+        }
+        .delete-button:hover {
+            background-color: #e53935;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .checkbox-group input {
+            margin-right: 10px;
+        }
+
+        @media screen and (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-around;
+                padding-top: 0;
+                padding-bottom: 10px;
+            }
+            .sidebar a {
+                border-bottom: none;
+                border-right: 1px solid #444;
+                padding: 10px 5px;
+            }
+            .sidebar a:last-child {
+                border-right: none;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .input-group input {
+                width: 100%;
+                margin-right: 0;
+            }
+            .input-group button {
+                width: 100%;
+            }
+            .stream-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .iframe-container {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16 / 9; /* Preserve aspect ratio */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/static/livestreams.html">Livestreams</a>
+        <a href="/static/announcement.html">Announcements</a>
+        <a href="/static/tt.html">Table Tennis</a>
+        <a href="/static/html.html">Custom HTML</a>
+    </div>
+    <div class="main-content">
+        <header>
+            <h1>Livestream Admin Page</h1>
+        </header>
+        <div class="container">
+            <div class="input-group">
+                <input type="text" id="newStreamUrl" placeholder="Enter YouTube URL">
+                <button onclick="addStream()">Add Stream</button>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="cycleCheckbox" onchange="toggleCycleLivestreams()">
+                <label for="cycleCheckbox">Cycle Livestreams</label>
+            </div>
+            <div class="instruction">
+                Click on a livestream to set it as the active stream.
+            </div>
+            <div class="stream-list" id="streamList">
+                <!-- Streams will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        const apiUrl = "/livestreams";
+
+        async function fetchStreams() {
+            const response = await fetch(`${apiUrl}/`);
+            return response.json();
+        }
+
+        async function fetchActiveStream() {
+            const response = await fetch(`${apiUrl}/active`);
+            return response.json();
+        }
+
+        async function fetchCycleLivestreams() {
+            const response = await fetch(`${apiUrl}/cycle`);
+            return response.json();
+        }
+
+        async function addStream() {
+            const url = document.getElementById('newStreamUrl').value;
+            await fetch(`${apiUrl}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url })
+            });
+            loadStreams();
+        }
+
+        async function deleteStream(id) {
+            await fetch(`${apiUrl}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id })
+            });
+            loadStreams();
+        }
+
+        async function setActiveStream(id) {
+            await fetch(`${apiUrl}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id })
+            });
+            loadStreams();
+        }
+
+        async function toggleCycleLivestreams() {
+            const checkbox = document.getElementById('cycleCheckbox');
+            const value = checkbox.checked;
+            await fetch(`${apiUrl}/cycle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ value })
+            });
+        }
+
+        async function loadStreams() {
+            const streams = await fetchStreams();
+            const activeStream = await fetchActiveStream();
+            const cycleLivestreams = await fetchCycleLivestreams();
+            const streamList = document.getElementById('streamList');
+            const cycleCheckbox = document.getElementById('cycleCheckbox');
+            streamList.innerHTML = '';
+
+            cycleCheckbox.checked = cycleLivestreams;
+
+            streams.forEach(stream => {
+                const streamItem = document.createElement('div');
+                streamItem.className = 'stream-item';
+                if (stream.id === activeStream.id) {
+                    streamItem.classList.add('active');
+                }
+                streamItem.onclick = () => setActiveStream(stream.id);
+
+                const iframeContainer = document.createElement('div');
+                iframeContainer.className = 'iframe-container';
+
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://www.youtube.com/embed/${stream.code}`;
+                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                iframe.allowFullscreen = true;
+
+                iframeContainer.appendChild(iframe);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.innerText = 'X';
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation();
+                    deleteStream(stream.id);
+                };
+
+                streamItem.appendChild(deleteButton);
+                streamItem.appendChild(iframeContainer);
+                streamList.appendChild(streamItem);
+            });
+        }
+
+        loadStreams();
+    </script>
+</body>
+</html>
